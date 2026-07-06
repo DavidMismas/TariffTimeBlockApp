@@ -10,148 +10,181 @@ import SwiftUI
 
 struct TariffWidgetView: View {
     @Environment(\.widgetFamily) private var family
+    @Environment(\.colorScheme) private var colorScheme
     let entry: TariffEntry
+    private let familyOverride: WidgetFamily?
+
+    init(entry: TariffEntry, familyOverride: WidgetFamily? = nil) {
+        self.entry = entry
+        self.familyOverride = familyOverride
+    }
 
     var body: some View {
-        switch family {
-        case .systemSmall:
-            SmallWidget(status: entry.status)
-                .containerBackground(.background, for: .widget)
+        Group {
+            switch familyOverride ?? family {
+            case .systemMedium:
+                MediumWidget(status: entry.status, palette: palette)
+            default:
+                SmallWidget(status: entry.status, palette: palette)
+            }
+        }
+        .foregroundStyle(palette.primary)
+        .containerBackground(for: .widget) {
+            palette.background
+        }
+    }
 
-        case .systemMedium:
-            MediumWidget(status: entry.status)
-                .containerBackground(.background, for: .widget)
+    private var palette: WidgetPalette {
+        WidgetPalette(colorScheme: colorScheme)
+    }
+}
 
-        default:
-            SmallWidget(status: entry.status)
-                .containerBackground(.background, for: .widget)
+private struct WidgetPalette {
+    let background: Color
+    let surface: Color
+    let primary: Color
+    let secondary: Color
+    let separator: Color
+
+    init(colorScheme: ColorScheme) {
+        if colorScheme == .dark {
+            background = Color(red: 0.055, green: 0.065, blue: 0.085)
+            surface = Color.white.opacity(0.075)
+            primary = .white
+            secondary = Color.white.opacity(0.68)
+            separator = Color.white.opacity(0.14)
+        } else {
+            background = Color(red: 0.975, green: 0.98, blue: 0.99)
+            surface = Color.black.opacity(0.045)
+            primary = Color(red: 0.07, green: 0.08, blue: 0.1)
+            secondary = Color.black.opacity(0.58)
+            separator = Color.black.opacity(0.1)
         }
     }
 }
-
-// MARK: - Shared Card Shell (prepreči “čez rob”)
-
-private struct WidgetCard<Content: View>: View {
-    let accent: Color
-    let content: Content
-
-    init(accent: Color, @ViewBuilder content: () -> Content) {
-        self.accent = accent
-        self.content = content()
-    }
-
-    var body: some View {
-        content
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .padding(12) // varno znotraj widgeta
-            .background {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(.ultraThinMaterial)
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(accent.opacity(0.65), lineWidth: 2) // ZNOTRAJ, ne ven
-            }
-    }
-}
-
-// MARK: - Small (2x2)
 
 private struct SmallWidget: View {
     let status: TariffStatus
+    let palette: WidgetPalette
 
     var body: some View {
-        let lvl = status.currentSlot.level
+        let level = status.currentSlot.level
 
-        WidgetCard(accent: lvl.color) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(lvl.displayTitle)
-                    .font(.system(size: 26, weight: .heavy, design: .rounded))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.9)
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 8) {
+                Text("OMREŽNINA")
+                    .font(.caption2.weight(.bold))
+                    .tracking(0.6)
+                    .foregroundStyle(palette.secondary)
 
-                Text(status.currentSlot.interval.display)
-                    .font(.system(.caption, design: .monospaced).weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
+                Spacer(minLength: 4)
 
-                Spacer(minLength: 0)
-
-                HStack(spacing: 6) {
-                    Text("Naslednji")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                    Spacer(minLength: 6)
-                    Text(status.nextSlot.level.displayTitle)
-                        .font(.caption2.weight(.bold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.9)
-                }
+                Circle()
+                    .fill(level.color)
+                    .frame(width: 10, height: 10)
+                    .widgetAccentable()
             }
+
+            Text(level.displayTitle)
+                .font(.system(size: 27, weight: .heavy, design: .rounded))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+
+            Text(status.currentSlot.interval.display)
+                .font(.system(.caption, design: .monospaced).weight(.semibold))
+                .foregroundStyle(palette.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+
+            Spacer(minLength: 2)
+
+            Rectangle()
+                .fill(palette.separator)
+                .frame(height: 1)
+
+            HStack(spacing: 6) {
+                Text("Naslednji")
+                    .font(.caption2)
+                    .foregroundStyle(palette.secondary)
+                Spacer(minLength: 4)
+                Text(status.nextSlot.level.displayTitle)
+                    .font(.caption2.weight(.bold))
+                Text(status.nextChangeDate.tariffFormatted(dateStyle: .none, timeStyle: .short))
+                    .font(.system(.caption2, design: .monospaced))
+                    .foregroundStyle(palette.secondary)
+            }
+            .lineLimit(1)
+            .minimumScaleFactor(0.72)
         }
+        .accessibilityElement(children: .combine)
     }
 }
 
-// MARK: - Medium (4x2) — ISTA višina kot small, samo širše
-
 private struct MediumWidget: View {
     let status: TariffStatus
+    let palette: WidgetPalette
 
     var body: some View {
-        let lvl = status.currentSlot.level
+        let level = status.currentSlot.level
 
-        WidgetCard(accent: lvl.color) {
-            HStack(alignment: .top, spacing: 12) {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 7) {
+                HStack(spacing: 7) {
+                    Circle()
+                        .fill(level.color)
+                        .frame(width: 10, height: 10)
+                        .widgetAccentable()
 
-                // LEVO: glavno
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(lvl.displayTitle)
-                        .font(.system(size: 32, weight: .heavy, design: .rounded))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.9)
-
-                    Text(status.currentSlot.interval.display)
-                        .font(.system(.subheadline, design: .monospaced).weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.85)
-
-                    Text(lvl.subtitle)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                    Text("TRENUTNO")
+                        .font(.caption2.weight(.bold))
+                        .tracking(0.6)
+                        .foregroundStyle(palette.secondary)
                 }
 
-                Spacer(minLength: 0)
+                Text(level.displayTitle)
+                    .font(.system(size: 33, weight: .heavy, design: .rounded))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
 
-                // DESNO: naslednji (kompaktno, da izkoristi širino)
-                VStack(alignment: .trailing, spacing: 8) {
-                    Text("Naslednji")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                Text(status.currentSlot.interval.display)
+                    .font(.system(.subheadline, design: .monospaced).weight(.semibold))
+                    .foregroundStyle(palette.secondary)
+                    .lineLimit(1)
 
-                    Text(status.nextSlot.level.displayTitle)
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.9)
-
-                    Text("ob \(status.nextChangeDate.tariffFormatted(dateStyle: .none, timeStyle: .short))")
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.85)
-
-                    // Optional: timer (če želiš, odstrani)
-                    Text(status.nextChangeDate, style: .timer)
-                        .font(.system(.caption2, design: .monospaced).weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.85)
-                }
+                Text(level.subtitle)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(palette.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Rectangle()
+                .fill(palette.separator)
+                .frame(width: 1)
+
+            VStack(alignment: .leading, spacing: 7) {
+                Label("Naslednji", systemImage: "arrow.right.circle.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(palette.secondary)
+
+                Text(status.nextSlot.level.displayTitle)
+                    .font(.system(.title3, design: .rounded).weight(.bold))
+                    .lineLimit(1)
+
+                Text("ob \(status.nextChangeDate.tariffFormatted(dateStyle: .none, timeStyle: .short))")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(palette.secondary)
+
+                Text(status.nextChangeDate, style: .timer)
+                    .font(.system(.caption2, design: .monospaced).weight(.semibold))
+                    .foregroundStyle(level.color)
+                    .lineLimit(1)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .background(palette.surface, in: .rect(cornerRadius: 14))
         }
+        .accessibilityElement(children: .combine)
     }
 }

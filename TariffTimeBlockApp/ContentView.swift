@@ -9,289 +9,357 @@ import SwiftUI
 
 struct ContentView: View {
     private let engine = TariffEngine()
+    @State private var isShowingInfo = false
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
-            let status = engine.status(for: context.date)
+            dashboard(status: engine.status(for: context.date))
+        }
+    }
 
-            NavigationStack {
-                ScrollView {
-                    VStack(spacing: 14) {
-
-                        // BIG: trenutni blok (kot prej)
-                        CurrentBlockCard(status: status)
-
-                        // Seznam vseh intervalov (trenutni je samo obarvan)
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Danes (vsi intervali)")
-                                .font(.headline.weight(.bold))
-                                .padding(.horizontal, 4)
-
-                            ForEach(Array(status.daySlots.enumerated()), id: \.offset) { idx, slot in
-                                SlotCard(
-                                    title: slot.level.displayTitle,
-                                    subtitle: slot.level.subtitle,
-                                    rightTop: slot.interval.display,
-                                    rightBottom: idx == status.currentIndex
-                                        ? "\(status.season.title) · \(status.dayType.title)"
-                                        : "",
-                                    accentLevel: idx == status.currentIndex ? slot.level : nil
-                                )
-                            }
-                        }
-
-                        // Info kartica
-                        InfoCard(status: status)
-                            .padding(.top, 6)
-                    }
+    private func dashboard(status: TariffStatus) -> some View {
+        NavigationStack {
+            ScrollView {
+                TariffDashboard(status: status)
+                    .frame(maxWidth: 780)
+                    .frame(maxWidth: .infinity)
                     .padding(.horizontal, 16)
                     .padding(.top, 14)
-                    .padding(.bottom, 22)
+                    .padding(.bottom, 28)
+            }
+            .background(Color(uiColor: .systemGroupedBackground))
+            .navigationTitle("Omrežnina")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        isShowingInfo = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                    }
+                    .accessibilityLabel("O aplikaciji")
                 }
-                .navigationTitle("Omrežnina")
-                .navigationBarTitleDisplayMode(.inline)
+            }
+            .sheet(isPresented: $isShowingInfo) {
+                AppInfoView()
             }
         }
     }
 }
 
-// MARK: - Cards
+private struct AppInfoView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    private let sourceURL = URL(
+        string: "https://www.uro.si/prenova-omre%C5%BEnine/novi-%C4%8Dasovni-bloki"
+    )!
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Vir") {
+                    Link(destination: sourceURL) {
+                        Label("Agencija za energijo – URO", systemImage: "arrow.up.right.square")
+                    }
+                }
+
+                Section("O aplikaciji") {
+                    Label("Ni uradna aplikacija.", systemImage: "exclamationmark.circle")
+                    LabeledContent("Razvijalec", value: "David Mišmaš")
+                }
+            }
+            .navigationTitle("Informacije")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Zapri") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+}
+
+private struct TariffDashboard: View {
+    let status: TariffStatus
+
+    var body: some View {
+        VStack(spacing: 18) {
+            CurrentBlockCard(status: status)
+
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Današnji razpored")
+                        .font(.headline.weight(.bold))
+                    Spacer()
+                    Text("\(status.daySlots.count) intervalov")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 4)
+
+                ForEach(Array(status.daySlots.enumerated()), id: \.offset) { index, slot in
+                    SlotCard(slot: slot, isCurrent: index == status.currentIndex)
+                }
+            }
+
+            InfoCard(status: status)
+        }
+    }
+}
+
+// MARK: - Current block
 
 private struct CurrentBlockCard: View {
     let status: TariffStatus
 
     var body: some View {
-        let lvl = status.currentSlot.level
+        let level = status.currentSlot.level
 
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Trenutno")
-                        .font(.caption.weight(.semibold))
-                        .opacity(0.9)
-
-                    Text(lvl.displayTitle)
-                        .font(.system(size: 42, weight: .heavy, design: .rounded))
-
-                    Text(lvl.subtitle)
-                        .font(.headline.weight(.semibold))
-                        .opacity(0.95)
-                }
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 10) {
+                Label("Trenutno", systemImage: "bolt.fill")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(level.color)
 
                 Spacer()
 
-                VStack(alignment: .trailing, spacing: 6) {
-                    Text(status.currentSlot.interval.display)
-                        .font(.headline.weight(.semibold))
-                        .opacity(0.95)
+                Text("\(status.season.title) · \(status.dayType.title)")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
 
-                    Text("\(status.season.title) · \(status.dayType.title)")
-                        .font(.caption)
-                        .opacity(0.9)
+            HStack(alignment: .firstTextBaseline, spacing: 16) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(level.displayTitle)
+                        .font(.system(size: 42, weight: .heavy, design: .rounded))
+                        .lineLimit(1)
+
+                    Text(level.subtitle)
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(.secondary)
                 }
+
+                Spacer(minLength: 8)
+
+                Text(status.currentSlot.interval.display)
+                    .font(.system(.title3, design: .monospaced).weight(.bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
 
             Divider()
 
-            HStack {
-                Text("Velja še:")
-                    .font(.subheadline.weight(.semibold))
-                    .opacity(0.95)
-                Spacer()
-                Text(formatCountdown(status.secondsToNextChange))
-                    .font(.system(.subheadline, design: .monospaced).weight(.bold))
-                    .opacity(0.95)
-            }
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 18) {
+                    statusMetric(
+                        title: "Velja še",
+                        value: formatCountdown(status.secondsToNextChange),
+                        icon: "timer"
+                    )
 
-            HStack {
-                Text("Naslednji:")
-                    .font(.subheadline.weight(.semibold))
-                    .opacity(0.95)
-                Spacer()
-                Text("\(status.nextSlot.level.displayTitle) od \(status.nextChangeDate.tariffFormatted(dateStyle: .none, timeStyle: .short))")
-                    .font(.subheadline.weight(.bold))
-                    .opacity(0.95)
+                    Divider()
+
+                    statusMetric(
+                        title: "Naslednji",
+                        value: "\(status.nextSlot.level.displayTitle) ob \(status.nextChangeDate.tariffFormatted(dateStyle: .none, timeStyle: .short))",
+                        icon: "arrow.right.circle"
+                    )
+                }
+
+                VStack(spacing: 12) {
+                    statusMetric(
+                        title: "Velja še",
+                        value: formatCountdown(status.secondsToNextChange),
+                        icon: "timer"
+                    )
+                    Divider()
+                    statusMetric(
+                        title: "Naslednji",
+                        value: "\(status.nextSlot.level.displayTitle) ob \(status.nextChangeDate.tariffFormatted(dateStyle: .none, timeStyle: .short))",
+                        icon: "arrow.right.circle"
+                    )
+                }
             }
         }
-        .padding(16)
-        .foregroundStyle(lvl.textColor)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(lvl.color)
-        )
+        .padding(20)
+        .background(Color(uiColor: .secondarySystemGroupedBackground), in: .rect(cornerRadius: 22))
+        .overlay {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(level.color.opacity(0.45), lineWidth: 1.5)
+        }
+        .overlay(alignment: .leading) {
+            Capsule()
+                .fill(level.color)
+                .frame(width: 5)
+                .padding(.vertical, 20)
+        }
+    }
+
+    private func statusMetric(title: String, value: String, icon: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 22)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text(value)
+                    .font(.system(.subheadline, design: .rounded).weight(.bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func formatCountdown(_ seconds: Int) -> String {
-        let s = max(0, seconds)
-        let h = s / 3600
-        let m = (s % 3600) / 60
-        let sec = s % 60
+        let value = max(0, seconds)
+        let hours = value / 3600
+        let minutes = (value % 3600) / 60
+        let remainingSeconds = value % 60
 
-        if h > 0 {
-            return String(format: "%02dh %02dm %02ds", h, m, sec)
-        } else if m > 0 {
-            return String(format: "%02dm %02ds", m, sec)
+        if hours > 0 {
+            return String(format: "%02dh %02dm %02ds", hours, minutes, remainingSeconds)
+        } else if minutes > 0 {
+            return String(format: "%02dm %02ds", minutes, remainingSeconds)
         } else {
-            return String(format: "%02ds", sec)
+            return String(format: "%02ds", remainingSeconds)
         }
     }
 }
 
-/// “Majhna kartica” (isti stil kot “naslednji” prej),
-/// samo da jo lahko obarvamo, če je trenutna.
+// MARK: - Schedule
+
 private struct SlotCard: View {
-    let title: String
-    let subtitle: String
-    let rightTop: String
-    let rightBottom: String
-    let accentLevel: TariffLevel?
+    let slot: TariffSlot
+    let isCurrent: Bool
 
     var body: some View {
-        let isAccent = (accentLevel != nil)
+        HStack(spacing: 12) {
+            Circle()
+                .fill(slot.level.color)
+                .frame(width: 10, height: 10)
+                .accessibilityHidden(true)
 
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.title3.weight(.heavy))
-                    Text(subtitle)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(isAccent ? accentLevel!.textColor.opacity(0.9) : .secondary)
-                }
-                Spacer()
-                VStack(alignment: .trailing, spacing: 6) {
-                    Text(rightTop)
-                        .font(.headline.weight(.semibold))
-                    if !rightBottom.isEmpty {
-                        Text(rightBottom)
-                            .font(.caption)
-                            .foregroundStyle(isAccent ? accentLevel!.textColor.opacity(0.9) : .secondary)
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 8) {
+                    Text(slot.level.displayTitle)
+                        .font(.headline.weight(.bold))
+
+                    if isCurrent {
+                        Text("ZDAJ")
+                            .font(.caption2.weight(.heavy))
+                            .foregroundStyle(slot.level.color)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background(slot.level.color.opacity(0.12), in: .capsule)
                     }
                 }
+
+                Text(slot.level.subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 12)
+
+            Text(slot.interval.display)
+                .font(.system(.subheadline, design: .monospaced).weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(Color(uiColor: .secondarySystemGroupedBackground), in: .rect(cornerRadius: 18))
+        .overlay {
+            if isCurrent {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(slot.level.color.opacity(0.55), lineWidth: 1.5)
             }
         }
-        .padding(16)
-        .foregroundStyle(isAccent ? accentLevel!.textColor : .primary)
-        .background {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(isAccent ? AnyShapeStyle(accentLevel!.color)
-                               : AnyShapeStyle(.ultraThinMaterial))
-        }
-
+        .accessibilityElement(children: .combine)
     }
 }
+
+// MARK: - Details
 
 private struct InfoCard: View {
     let status: TariffStatus
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Info")
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Podrobnosti")
                 .font(.headline.weight(.bold))
 
-            HStack {
-                Label("Datum", systemImage: "calendar")
-                Spacer()
-                Text(status.date.tariffFormatted(dateStyle: .medium, timeStyle: .short))
-                    .foregroundStyle(.secondary)
-            }
-
-            HStack {
-                Label("Sezona", systemImage: "leaf")
-                Spacer()
-                Text(status.season.title)
-                    .foregroundStyle(.secondary)
-            }
-
-            HStack {
-                Label("Dan", systemImage: "clock")
-                Spacer()
-                Text(status.dayType.title)
-                    .foregroundStyle(.secondary)
-            }
-
-            Divider()
-
-           
+            infoRow(title: "Datum", value: status.date.tariffFormatted(dateStyle: .medium, timeStyle: .short), icon: "calendar")
+            infoRow(title: "Sezona", value: status.season.title, icon: "leaf")
+            infoRow(title: "Dan", value: status.dayType.title, icon: "clock")
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(.ultraThinMaterial)
-        )
+        .padding(18)
+        .background(Color(uiColor: .secondarySystemGroupedBackground), in: .rect(cornerRadius: 20))
+    }
+
+    private func infoRow(title: String, value: String, icon: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .foregroundStyle(.secondary)
+                .frame(width: 22)
+            Text(title)
+            Spacer()
+            Text(value)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.trailing)
+        }
+        .font(.subheadline)
     }
 }
 
 // MARK: - Previews
 
-#Preview("Višja sezona • Delovni • 06:30") {
-    ContentView_PreviewHost(fixedDate: makeDate(year: 2026, month: 1, day: 14, hour: 6, minute: 30))
+#Preview("Light · iPhone") {
+    previewDashboard(date: makeDate(year: 2026, month: 1, day: 14, hour: 8, minute: 30))
+        .preferredColorScheme(.light)
 }
 
-#Preview("Višja sezona • Delovni • 08:30") {
-    ContentView_PreviewHost(fixedDate: makeDate(year: 2026, month: 1, day: 14, hour: 8, minute: 30))
+#Preview("Dark · iPhone") {
+    previewDashboard(date: makeDate(year: 2026, month: 7, day: 18, hour: 23, minute: 10))
+        .preferredColorScheme(.dark)
 }
 
-#Preview("Nižja sezona • Prost • 23:10 (sobota)") {
-    ContentView_PreviewHost(fixedDate: makeDate(year: 2026, month: 7, day: 18, hour: 23, minute: 10))
-}
-
-#Preview("Praznik • 01.11 • 12:00") {
-    ContentView_PreviewHost(fixedDate: makeDate(year: 2026, month: 11, day: 1, hour: 12, minute: 0))
-}
-
-private struct ContentView_PreviewHost: View {
-    let fixedDate: Date
-    private let engine = TariffEngine()
-
-    var body: some View {
-        let status = engine.status(for: fixedDate)
-
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 14) {
-                    CurrentBlockCard(status: status)
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Danes (vsi intervali)")
-                            .font(.headline.weight(.bold))
-                            .padding(.horizontal, 4)
-
-                        ForEach(Array(status.daySlots.enumerated()), id: \.offset) { idx, slot in
-                            SlotCard(
-                                title: slot.level.displayTitle,
-                                subtitle: slot.level.subtitle,
-                                rightTop: slot.interval.display,
-                                rightBottom: idx == status.currentIndex ? "\(status.season.title) · \(status.dayType.title)" : "",
-                                accentLevel: idx == status.currentIndex ? slot.level : nil
-                            )
-                        }
-                    }
-
-                    InfoCard(status: status)
-                        .padding(.top, 6)
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 14)
-                .padding(.bottom, 22)
-            }
-            .navigationTitle("Omrežnina")
-            .navigationBarTitleDisplayMode(.inline)
+private func previewDashboard(date: Date) -> some View {
+    let status = TariffEngine().status(for: date)
+    return NavigationStack {
+        ScrollView {
+            TariffDashboard(status: status)
+                .frame(maxWidth: 780)
+                .frame(maxWidth: .infinity)
+                .padding(16)
         }
+        .background(Color(uiColor: .systemGroupedBackground))
+        .navigationTitle("Omrežnina")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 private func makeDate(year: Int, month: Int, day: Int, hour: Int, minute: Int) -> Date {
-    var cal = Calendar.current
-    cal.timeZone = TimeZone(identifier: "Europe/Ljubljana") ?? .current
-
-    var comps = DateComponents()
-    comps.year = year
-    comps.month = month
-    comps.day = day
-    comps.hour = hour
-    comps.minute = minute
-    comps.second = 0
-
-    return cal.date(from: comps) ?? .now
+    var components = DateComponents()
+    components.calendar = TariffClock.calendar
+    components.timeZone = TariffClock.timeZone
+    components.year = year
+    components.month = month
+    components.day = day
+    components.hour = hour
+    components.minute = minute
+    components.second = 0
+    return components.date ?? .now
 }

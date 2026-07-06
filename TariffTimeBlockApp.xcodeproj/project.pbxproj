@@ -13,19 +13,19 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		A100000A2F300000003C684A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 63CD09FD2F2000D5003C684A /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 63CD0A042F2000D5003C684A;
-			remoteInfo = TariffTimeBlockApp;
-		};
 		63CD0A2B2F200548003C684A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 63CD09FD2F2000D5003C684A /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 63CD0A1C2F200546003C684A;
 			remoteInfo = TariffWidgetExtension;
+		};
+		A100000A2F300000003C684A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 63CD09FD2F2000D5003C684A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 63CD0A042F2000D5003C684A;
+			remoteInfo = TariffTimeBlockApp;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -79,11 +79,6 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A10000022F300000003C684A /* TariffTimeBlockAppTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = TariffTimeBlockAppTests;
-			sourceTree = "<group>";
-		};
 		63CD0A072F2000D5003C684A /* TariffTimeBlockApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -101,16 +96,14 @@
 			path = TariffWidget;
 			sourceTree = "<group>";
 		};
+		A10000022F300000003C684A /* TariffTimeBlockAppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TariffTimeBlockAppTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A10000042F300000003C684A /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		63CD0A022F2000D5003C684A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,6 +117,13 @@
 			files = (
 				63CD0A222F200546003C684A /* SwiftUI.framework in Frameworks */,
 				63CD0A202F200546003C684A /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000042F300000003C684A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -163,29 +163,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A10000062F300000003C684A /* TariffTimeBlockAppTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A10000092F300000003C684A /* Build configuration list for PBXNativeTarget "TariffTimeBlockAppTests" */;
-			buildPhases = (
-				A10000032F300000003C684A /* Sources */,
-				A10000042F300000003C684A /* Frameworks */,
-				A10000052F300000003C684A /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				A100000B2F300000003C684A /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				A10000022F300000003C684A /* TariffTimeBlockAppTests */,
-			);
-			name = TariffTimeBlockAppTests;
-			packageProductDependencies = (
-			);
-			productName = TariffTimeBlockAppTests;
-			productReference = A10000012F300000003C684A /* TariffTimeBlockAppTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 		63CD0A042F2000D5003C684A /* TariffTimeBlockApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 63CD0A102F2000D7003C684A /* Build configuration list for PBXNativeTarget "TariffTimeBlockApp" */;
@@ -232,6 +209,29 @@
 			productReference = 63CD0A1D2F200546003C684A /* TariffWidgetExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		A10000062F300000003C684A /* TariffTimeBlockAppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000092F300000003C684A /* Build configuration list for PBXNativeTarget "TariffTimeBlockAppTests" */;
+			buildPhases = (
+				A10000032F300000003C684A /* Sources */,
+				A10000042F300000003C684A /* Frameworks */,
+				A10000052F300000003C684A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A100000B2F300000003C684A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A10000022F300000003C684A /* TariffTimeBlockAppTests */,
+			);
+			name = TariffTimeBlockAppTests;
+			packageProductDependencies = (
+			);
+			productName = TariffTimeBlockAppTests;
+			productReference = A10000012F300000003C684A /* TariffTimeBlockAppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -242,15 +242,15 @@
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
-					A10000062F300000003C684A = {
-						CreatedOnToolsVersion = 26.2;
-						TestTargetID = 63CD0A042F2000D5003C684A;
-					};
 					63CD0A042F2000D5003C684A = {
 						CreatedOnToolsVersion = 26.2;
 					};
 					63CD0A1C2F200546003C684A = {
 						CreatedOnToolsVersion = 26.2;
+					};
+					A10000062F300000003C684A = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 63CD0A042F2000D5003C684A;
 					};
 				};
 			};
@@ -276,13 +276,6 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		A10000052F300000003C684A /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		63CD0A032F2000D5003C684A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -297,16 +290,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-/* End PBXResourcesBuildPhase section */
-
-/* Begin PBXSourcesBuildPhase section */
-		A10000032F300000003C684A /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
+		A10000052F300000003C684A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
 		63CD0A012F2000D5003C684A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -321,68 +314,29 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A10000032F300000003C684A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		A100000B2F300000003C684A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 63CD0A042F2000D5003C684A /* TariffTimeBlockApp */;
-			targetProxy = A100000A2F300000003C684A /* PBXContainerItemProxy */;
-		};
 		63CD0A2C2F200548003C684A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 63CD0A1C2F200546003C684A /* TariffWidgetExtension */;
 			targetProxy = 63CD0A2B2F200548003C684A /* PBXContainerItemProxy */;
 		};
+		A100000B2F300000003C684A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 63CD0A042F2000D5003C684A /* TariffTimeBlockApp */;
+			targetProxy = A100000A2F300000003C684A /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		A10000072F300000003C684A /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = AX2Z5LF5SG;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.david.TariffTimeBlockAppTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TariffTimeBlockApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TariffTimeBlockApp";
-			};
-			name = Debug;
-		};
-		A10000082F300000003C684A /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = AX2Z5LF5SG;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.david.TariffTimeBlockAppTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TariffTimeBlockApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TariffTimeBlockApp";
-			};
-			name = Release;
-		};
 		63CD0A0E2F2000D7003C684A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -510,7 +464,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = AX2Z5LF5SG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -525,7 +479,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.david.TariffTimeBlockApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -547,7 +501,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = AX2Z5LF5SG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -562,7 +516,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.david.TariffTimeBlockApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -584,7 +538,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = AX2Z5LF5SG;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TariffWidget/Info.plist;
@@ -595,7 +549,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.david.TariffTimeBlockApp.TariffWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -614,7 +568,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = AX2Z5LF5SG;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TariffWidget/Info.plist;
@@ -625,7 +579,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.david.TariffTimeBlockApp.TariffWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -638,18 +592,55 @@
 			};
 			name = Release;
 		};
+		A10000072F300000003C684A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AX2Z5LF5SG;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.david.TariffTimeBlockAppTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TariffTimeBlockApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TariffTimeBlockApp";
+			};
+			name = Debug;
+		};
+		A10000082F300000003C684A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AX2Z5LF5SG;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.david.TariffTimeBlockAppTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TariffTimeBlockApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TariffTimeBlockApp";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A10000092F300000003C684A /* Build configuration list for PBXNativeTarget "TariffTimeBlockAppTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A10000072F300000003C684A /* Debug */,
-				A10000082F300000003C684A /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		63CD0A002F2000D5003C684A /* Build configuration list for PBXProject "TariffTimeBlockApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -673,6 +664,15 @@
 			buildConfigurations = (
 				63CD0A302F200548003C684A /* Debug */,
 				63CD0A312F200548003C684A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000092F300000003C684A /* Build configuration list for PBXNativeTarget "TariffTimeBlockAppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000072F300000003C684A /* Debug */,
+				A10000082F300000003C684A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

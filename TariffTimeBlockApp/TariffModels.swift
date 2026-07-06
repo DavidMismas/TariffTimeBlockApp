@@ -22,7 +22,7 @@ enum TariffClock {
 extension Date {
     func tariffFormatted(dateStyle: DateFormatter.Style, timeStyle: DateFormatter.Style) -> String {
         let formatter = DateFormatter()
-        formatter.locale = .autoupdatingCurrent
+        formatter.locale = Locale(identifier: "sl_SI")
         formatter.timeZone = TariffClock.timeZone
         formatter.dateStyle = dateStyle
         formatter.timeStyle = timeStyle
@@ -80,20 +80,12 @@ enum TariffLevel: Int, CaseIterable {
     }
 
     var color: Color {
-        // Barve vezane na realno stopnjo (1 rdeče -> 5 zeleno)
         switch self {
-        case .l1: return .red
-        case .l2: return .orange
-        case .l3: return .yellow
-        case .l4: return .green.opacity(0.45)
-        case .l5: return .green
-        }
-    }
-
-    var textColor: Color {
-        switch self {
-        case .l3, .l4: return .black
-        default: return .white
+        case .l1: return Color(red: 0.86, green: 0.16, blue: 0.2)
+        case .l2: return Color(red: 0.93, green: 0.43, blue: 0.06)
+        case .l3: return Color(red: 0.76, green: 0.58, blue: 0.02)
+        case .l4: return Color(red: 0.15, green: 0.58, blue: 0.3)
+        case .l5: return Color(red: 0.02, green: 0.48, blue: 0.4)
         }
     }
 }
