@@ -8,6 +8,28 @@
 import Foundation
 import SwiftUI
 
+enum TariffClock {
+    static let timeZone = TimeZone(identifier: "Europe/Ljubljana")!
+
+    static var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = Locale(identifier: "sl_SI")
+        calendar.timeZone = timeZone
+        return calendar
+    }
+}
+
+extension Date {
+    func tariffFormatted(dateStyle: DateFormatter.Style, timeStyle: DateFormatter.Style) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = .autoupdatingCurrent
+        formatter.timeZone = TariffClock.timeZone
+        formatter.dateStyle = dateStyle
+        formatter.timeStyle = timeStyle
+        return formatter.string(from: self)
+    }
+}
+
 enum TariffSeason: String, CaseIterable {
     case higher
     case lower
@@ -19,7 +41,7 @@ enum TariffSeason: String, CaseIterable {
         }
     }
 
-    static func from(date: Date, calendar: Calendar = .current) -> TariffSeason {
+    static func from(date: Date, calendar: Calendar = TariffClock.calendar) -> TariffSeason {
         let month = calendar.component(.month, from: date)
         // Višja: november, december, januar, februar
         switch month {
@@ -41,29 +63,19 @@ enum DayType: String, CaseIterable {
     }
 }
 
-/// Interna vrednost je "cenovna stopnja" iz tabele:
-/// 1 = najdražji, 5 = najcenejši.
-/// V UI pa bomo prikazovali obratno (5 = najdražji), ker si tako želel.
+/// Številka reguliranega časovnega bloka. Ni neposredna cena energije.
 enum TariffLevel: Int, CaseIterable {
     case l1 = 1, l2, l3, l4, l5
 
-    /// Če je true: UI pokaže 5 kot najdražji (obratno številčenje).
-    static let invertDisplayNumbers: Bool = false
-
-    var displayNumber: Int {
-        TariffLevel.invertDisplayNumbers ? (6 - rawValue) : rawValue
-    }
-
-    var displayTitle: String { "BLOK \(displayNumber)" }
+    var displayTitle: String { "BLOK \(rawValue)" }
 
     var subtitle: String {
-        // Subtitle vezan na realno "drago/ceneje" (ne na display številko)
         switch self {
-        case .l1: return "najdražji"
-        case .l2: return "dražji"
-        case .l3: return "srednji"
-        case .l4: return "cenejši"
-        case .l5: return "najcenejši"
+        case .l1: return "najvišja obremenitev"
+        case .l2: return "visoka obremenitev"
+        case .l3: return "srednja obremenitev"
+        case .l4: return "nižja obremenitev"
+        case .l5: return "najnižja obremenitev"
         }
     }
 
@@ -123,11 +135,10 @@ struct TariffStatus: Equatable {
     let daySlots: [TariffSlot]
     let currentIndex: Int
 
-    let nextIndex: Int
+    let nextSlot: TariffSlot
     let nextChangeDate: Date
 
     var currentSlot: TariffSlot { daySlots[currentIndex] }
-    var nextSlot: TariffSlot { daySlots[nextIndex] }
 
     var secondsToNextChange: Int {
         max(0, Int(nextChangeDate.timeIntervalSince(date)))

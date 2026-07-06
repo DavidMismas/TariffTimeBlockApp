@@ -16,7 +16,7 @@ import Foundation
 /// dodamo še ročno tabelo po letih. Za normalen utility app je to dovolj.
 struct SloveniaHolidays {
 
-    static func isHoliday(_ date: Date, calendar: Calendar = .current) -> Bool {
+    static func isHoliday(_ date: Date, calendar: Calendar = TariffClock.calendar) -> Bool {
         let day = calendar.startOfDay(for: date)
 
         // Fiksni prazniki (mesec, dan)
@@ -85,4 +85,3 @@ struct SloveniaHolidays {
         return calendar.date(from: comps) ?? .distantPast
     }
 }
-

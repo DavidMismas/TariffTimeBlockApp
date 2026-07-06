@@ -108,7 +108,7 @@ private struct CurrentBlockCard: View {
                     .font(.subheadline.weight(.semibold))
                     .opacity(0.95)
                 Spacer()
-                Text("\(status.nextSlot.level.displayTitle) od \(status.nextChangeDate.formatted(date: .omitted, time: .shortened))")
+                Text("\(status.nextSlot.level.displayTitle) od \(status.nextChangeDate.tariffFormatted(dateStyle: .none, timeStyle: .short))")
                     .font(.subheadline.weight(.bold))
                     .opacity(0.95)
             }
@@ -192,7 +192,7 @@ private struct InfoCard: View {
             HStack {
                 Label("Datum", systemImage: "calendar")
                 Spacer()
-                Text(status.date.formatted(date: .abbreviated, time: .shortened))
+                Text(status.date.tariffFormatted(dateStyle: .medium, timeStyle: .short))
                     .foregroundStyle(.secondary)
             }
 

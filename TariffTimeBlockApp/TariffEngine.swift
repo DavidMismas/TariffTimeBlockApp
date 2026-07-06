@@ -9,35 +9,34 @@ import Foundation
 
 final class TariffEngine {
 
+    private enum ScheduleVersion {
+        case through2026
+        case from2027
+
+        static func from(date: Date, calendar: Calendar) -> ScheduleVersion {
+            calendar.component(.year, from: date) >= 2027 ? .from2027 : .through2026
+        }
+    }
+
     private let calendar: Calendar
 
-    init(calendar: Calendar = .current) {
-        self.calendar = calendar
+    init() {
+        self.calendar = TariffClock.calendar
     }
 
     func status(for date: Date) -> TariffStatus {
         let season = TariffSeason.from(date: date, calendar: calendar)
         let dayType = dayType(for: date)
-
-        let slots = scheduleSlots(for: season, dayType: dayType)
+        let slots = scheduleSlots(for: date, season: season, dayType: dayType)
         let minuteOfDay = minutesSinceMidnight(date)
 
         guard let currentIndex = slots.firstIndex(where: { $0.interval.contains(minuteOfDay: minuteOfDay) }) else {
-            // Če schedule kdaj ne pokrije dneva (ne bi smelo), fail-safe:
-            let safeIndex = 0
-            let next = nextFrom(slots: slots, currentIndex: safeIndex, date: date)
-            return TariffStatus(
-                date: date,
-                season: season,
-                dayType: dayType,
-                daySlots: slots,
-                currentIndex: safeIndex,
-                nextIndex: next.index,
-                nextChangeDate: next.changeDate
-            )
+            preconditionFailure("Tarifni urnik ne pokrije celotnega dneva.")
         }
 
-        let next = nextFrom(slots: slots, currentIndex: currentIndex, date: date)
+        let currentSlot = slots[currentIndex]
+        let nextChangeDate = dateAtMinuteOfDay(currentSlot.interval.end, on: date)
+        let nextSlot = slot(at: nextChangeDate)
 
         return TariffStatus(
             date: date,
@@ -45,8 +44,8 @@ final class TariffEngine {
             dayType: dayType,
             daySlots: slots,
             currentIndex: currentIndex,
-            nextIndex: next.index,
-            nextChangeDate: next.changeDate
+            nextSlot: nextSlot,
+            nextChangeDate: nextChangeDate
         )
     }
 
@@ -54,123 +53,131 @@ final class TariffEngine {
 
     private func dayType(for date: Date) -> DayType {
         let weekday = calendar.component(.weekday, from: date) // 1=Sun ... 7=Sat
-        let weekend = (weekday == 1 || weekday == 7)
-        if weekend { return .offday }
-
-        if SloveniaHolidays.isHoliday(date, calendar: calendar) {
+        if weekday == 1 || weekday == 7 {
             return .offday
         }
 
-        return .workday
+        return SloveniaHolidays.isHoliday(date, calendar: calendar) ? .offday : .workday
     }
 
-    // MARK: - Schedules (from your table)
+    // MARK: - Schedules
 
-    private func scheduleSlots(for season: TariffSeason, dayType: DayType) -> [TariffSlot] {
-        // Intervali:
-        // 00–06, 06–07, 07–14, 14–16, 16–20, 20–22, 22–24
-        let i00_06 = TimeIntervalMinutes(start: 0, end: 360)
-        let i06_07 = TimeIntervalMinutes(start: 360, end: 420)
-        let i07_14 = TimeIntervalMinutes(start: 420, end: 840)
-        let i14_16 = TimeIntervalMinutes(start: 840, end: 960)
-        let i16_20 = TimeIntervalMinutes(start: 960, end: 1200)
-        let i20_22 = TimeIntervalMinutes(start: 1200, end: 1320)
-        let i22_24 = TimeIntervalMinutes(start: 1320, end: 1440)
+    private func scheduleSlots(for date: Date, season: TariffSeason, dayType: DayType) -> [TariffSlot] {
+        switch ScheduleVersion.from(date: date, calendar: calendar) {
+        case .through2026:
+            return scheduleThrough2026(for: season, dayType: dayType)
+        case .from2027:
+            return scheduleFrom2027(for: season, dayType: dayType)
+        }
+    }
 
+    /// Urnik, ki velja do vključno 31. 12. 2026.
+    private func scheduleThrough2026(for season: TariffSeason, dayType: DayType) -> [TariffSlot] {
+        let intervals = [
+            TimeIntervalMinutes(start: 0, end: 360),
+            TimeIntervalMinutes(start: 360, end: 420),
+            TimeIntervalMinutes(start: 420, end: 840),
+            TimeIntervalMinutes(start: 840, end: 960),
+            TimeIntervalMinutes(start: 960, end: 1200),
+            TimeIntervalMinutes(start: 1200, end: 1320),
+            TimeIntervalMinutes(start: 1320, end: 1440)
+        ]
+
+        let levels: [TariffLevel]
         switch (season, dayType) {
+        case (.higher, .workday): levels = [.l3, .l2, .l1, .l2, .l1, .l2, .l3]
+        case (.higher, .offday), (.lower, .workday): levels = [.l4, .l3, .l2, .l3, .l2, .l3, .l4]
+        case (.lower, .offday): levels = [.l5, .l4, .l3, .l4, .l3, .l4, .l5]
+        }
 
-        // Višja sezona — Delovni dan:
-        // 1: 07–14, 16–20
-        // 2: 06–07, 14–16, 20–22
-        // 3: 00–06, 22–24
+        return zip(intervals, levels).map {
+            TariffSlot(interval: $0.0, level: $0.1)
+        }
+    }
+
+    /// Urnik iz spremenjene Priloge 2, ki se uporablja od 1. 1. 2027.
+    private func scheduleFrom2027(for season: TariffSeason, dayType: DayType) -> [TariffSlot] {
+        switch (season, dayType) {
         case (.higher, .workday):
-            return [
-                .init(interval: i00_06, level: .l3),
-                .init(interval: i06_07, level: .l2),
-                .init(interval: i07_14, level: .l1),
-                .init(interval: i14_16, level: .l2),
-                .init(interval: i16_20, level: .l1),
-                .init(interval: i20_22, level: .l2),
-                .init(interval: i22_24, level: .l3)
-            ]
+            return makeSlots([
+                (0, 360, .l3),
+                (360, 720, .l1),
+                (720, 1020, .l2),
+                (1020, 1200, .l1),
+                (1200, 1320, .l2),
+                (1320, 1440, .l3)
+            ])
 
-        // Višja sezona — Dela prost dan:
-        // 2: 07–14, 16–20
-        // 3: 06–07, 14–16, 20–22
-        // 4: 00–06, 22–24
         case (.higher, .offday):
-            return [
-                .init(interval: i00_06, level: .l4),
-                .init(interval: i06_07, level: .l3),
-                .init(interval: i07_14, level: .l2),
-                .init(interval: i14_16, level: .l3),
-                .init(interval: i16_20, level: .l2),
-                .init(interval: i20_22, level: .l3),
-                .init(interval: i22_24, level: .l4)
-            ]
+            return makeSlots([
+                (0, 360, .l4),
+                (360, 720, .l3),
+                (720, 1020, .l4),
+                (1020, 1320, .l3),
+                (1320, 1440, .l4)
+            ])
 
-        // Nižja sezona — Delovni dan:
-        // 2: 07–14, 16–20
-        // 3: 06–07, 14–16, 20–22
-        // 4: 00–06, 22–24
         case (.lower, .workday):
-            return [
-                .init(interval: i00_06, level: .l4),
-                .init(interval: i06_07, level: .l3),
-                .init(interval: i07_14, level: .l2),
-                .init(interval: i14_16, level: .l3),
-                .init(interval: i16_20, level: .l2),
-                .init(interval: i20_22, level: .l3),
-                .init(interval: i22_24, level: .l4)
-            ]
+            return makeSlots([
+                (0, 360, .l5),
+                (360, 720, .l3),
+                (720, 1020, .l4),
+                (1020, 1320, .l3),
+                (1320, 1440, .l5)
+            ])
 
-        // Nižja sezona — Dela prost dan:
-        // 3: 07–14, 16–20
-        // 4: 06–07, 14–16, 20–22
-        // 5: 00–06, 22–24
         case (.lower, .offday):
-            return [
-                .init(interval: i00_06, level: .l5),
-                .init(interval: i06_07, level: .l4),
-                .init(interval: i07_14, level: .l3),
-                .init(interval: i14_16, level: .l4),
-                .init(interval: i16_20, level: .l3),
-                .init(interval: i20_22, level: .l4),
-                .init(interval: i22_24, level: .l5)
-            ]
+            return makeSlots([
+                (0, 360, .l5),
+                (360, 720, .l4),
+                (720, 1020, .l5),
+                (1020, 1320, .l4),
+                (1320, 1440, .l5)
+            ])
+        }
+    }
+
+    private func makeSlots(_ definitions: [(start: Int, end: Int, level: TariffLevel)]) -> [TariffSlot] {
+        definitions.map {
+            TariffSlot(interval: TimeIntervalMinutes(start: $0.start, end: $0.end), level: $0.level)
         }
     }
 
     // MARK: - Next slot
 
-    private func nextFrom(slots: [TariffSlot], currentIndex: Int, date: Date) -> (index: Int, changeDate: Date) {
-        let current = slots[currentIndex]
-        let changeDate = dateAtMinuteOfDay(current.interval.end, on: date)
+    private func slot(at date: Date) -> TariffSlot {
+        let season = TariffSeason.from(date: date, calendar: calendar)
+        let slots = scheduleSlots(for: date, season: season, dayType: dayType(for: date))
+        let minuteOfDay = minutesSinceMidnight(date)
 
-        if currentIndex + 1 < slots.count {
-            return (currentIndex + 1, changeDate)
-        } else {
-            // Zadnji interval dneva -> naslednji je prvi interval naslednjega dne.
-            return (0, changeDate)
+        guard let slot = slots.first(where: { $0.interval.contains(minuteOfDay: minuteOfDay) }) else {
+            preconditionFailure("Tarifni urnik ne pokrije naslednjega trenutka.")
         }
+        return slot
     }
 
     // MARK: - Date helpers
 
-    private func startOfDay(_ date: Date) -> Date {
-        calendar.startOfDay(for: date)
-    }
-
     private func minutesSinceMidnight(_ date: Date) -> Int {
-        let comps = calendar.dateComponents([.hour, .minute], from: date)
-        let h = comps.hour ?? 0
-        let m = comps.minute ?? 0
-        return h * 60 + m
+        let components = calendar.dateComponents([.hour, .minute], from: date)
+        return (components.hour ?? 0) * 60 + (components.minute ?? 0)
     }
 
+    /// Ustvari lokalni stenski čas v Sloveniji. Dodajanje 1440 minut bi bilo ob prehodu
+    /// na poletni ali zimski čas zamaknjeno za eno uro, zato polnoč premaknemo po dnevih.
     private func dateAtMinuteOfDay(_ minute: Int, on date: Date) -> Date {
-        let dayStart = startOfDay(date)
+        let dayStart = calendar.startOfDay(for: date)
         let clamped = max(0, min(minute, 1440))
-        return calendar.date(byAdding: .minute, value: clamped, to: dayStart) ?? date
+
+        if clamped == 1440 {
+            return calendar.date(byAdding: .day, value: 1, to: dayStart) ?? date
+        }
+
+        var components = calendar.dateComponents([.year, .month, .day], from: date)
+        components.hour = clamped / 60
+        components.minute = clamped % 60
+        components.second = 0
+        components.timeZone = TariffClock.timeZone
+        return calendar.date(from: components) ?? date
     }
 }

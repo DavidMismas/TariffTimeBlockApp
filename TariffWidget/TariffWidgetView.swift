@@ -138,7 +138,7 @@ private struct MediumWidget: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.9)
 
-                    Text("ob \(status.nextChangeDate.formatted(date: .omitted, time: .shortened))")
+                    Text("ob \(status.nextChangeDate.tariffFormatted(dateStyle: .none, timeStyle: .short))")
                         .font(.system(.caption, design: .monospaced))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
